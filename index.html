@@ -19,7 +19,7 @@
         <div ng-controller="PlayerController">
           <ul id="programs_list" class="">
             <li ng-repeat="program in programs">
-              <span npr-link play='play(program)' ng-model="program"></span>
+              <span npr-link player="player" ng-model="program"></span>
             </li>
           </ul>
         </div>
@@ -27,6 +27,9 @@
 
       <div class="large-4 small-4 columns" ng-controller="RelatedController">
         <h2>Related content</h2>
+        <ul id="related">
+          <li ng-repeat="s in related"><a href="{{ s.link }}">{{ s.caption }}</a></li>
+        </ul>
       </div>
     </div>
 

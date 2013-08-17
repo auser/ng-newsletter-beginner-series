@@ -3,6 +3,66 @@ var app = angular.module('myApp', []),
     nprUrl = 'http://api.npr.org/query?id=61&fields=relatedLink,title,byline,text,audio,image,pullQuote,all&output=JSON';
 
 
+app.factory('audio', ['$document', function($document) {
+  var audio = $document[0].createElement('audio');
+  return audio;
+}]);
+
+app.factory('player', ['audio', '$rootScope', function(audio, $rootScope) {
+  var player = {
+
+    current: null,
+    progress: 0,
+    playing: false,
+
+    play: function(program) {
+      if (player.playing) 
+        player.stop();
+
+      var url = program.audio[0].format.mp4.$text;
+      player.current = program;
+      audio.src = url;
+      audio.play();
+      player.playing = true;
+    },
+    stop: function() {
+      if (player.playing) {
+        audio.pause();
+        player.playing = false;
+        player.current = null;
+      }
+    },
+    currentTime: function() {
+      return audio.currentTime;
+    }
+  };
+
+  audio.addEventListener('ended', function() {
+    $rootScope.$apply(player.stop());
+  });
+  return player;
+}]);
+
+app.factory('nprService', ['$http', '$q', '$rootScope', function($http, $q, $rootScope) {
+    var doRequest = function(apiKey) {
+      var d = $q.defer();
+      $http({
+        method: 'JSONP',
+        url: nprUrl + '&apiKey=' + apiKey + '&callback=JSON_CALLBACK'
+      }).success(function(data, status, headers) {
+        d.resolve(data.list.story);
+      }).error(function(data, status, headers) {
+        d.reject(status, data);
+      });
+
+      return d.promise;
+    }
+
+    return {
+      programs: function(apiKey) { return doRequest(apiKey); }
+    };
+  }]);
+
 app.directive('nprLink', function() {
   return {
     restrict: 'EA',
@@ -10,7 +70,7 @@ app.directive('nprLink', function() {
     replace: true,
     scope: {
       ngModel: '=',
-      play: '&'
+      player: '='
     },
     templateUrl: 'views/nprListItem.html',
     link: function(scope, ele, attr) {
@@ -19,42 +79,22 @@ app.directive('nprLink', function() {
   }
 });
 
-app.controller('PlayerController', ['$scope', '$http', function($scope, $http) {
-  var audio = document.createElement('audio');
-  $scope.audio = audio;
-
-  // audio.src = 'http://pd.npr.org/npr-mp4/npr/sf/2013/07/20130726_sf_05.mp4?orgId=1&topicId=1032&ft=3&f=61';
-  // audio.play();
-
-  $scope.play = function(program) {
-    if ($scope.playing) audio.pause();
-    var url = program.audio[0].format.mp4.$text;
-    audio.src = url;
-    audio.play();
-    // Store the state of the player as playing
-    $scope.playing = true;
-  }
-
-  $http({
-    method: 'JSONP',
-    url: nprUrl + '&apiKey=' + apiKey + '&callback=JSON_CALLBACK'
-  }).success(function(data, status) {
-    // Now we have a list of the stories (data.list.story)
-    // in the data object that the NPR API 
-    // returns in JSON that looks like:
-    // data: { "list": {
-    //   "title": ...
-    //   "story": [
-    //     { "id": ...
-    //       "title": ...
-    $scope.programs = data.list.story;
-  }).error(function(data, status) {
-    // Some error occurred
-  });
-
+app.controller('PlayerController', ['$scope', 'nprService', 'player', function($scope, nprService, player) {
+  $scope.player = player;
+  $scope.programs = nprService.programs(apiKey);
 }]);
 
-app.controller('RelatedController', ['$scope', function($scope) {
+app.controller('RelatedController', ['$scope', 'player', function($scope, player) {
+  $scope.player = player;
+  
+  $scope.$watch('player.current', function(newVal) {
+    if (newVal) {
+      $scope.related = [];
+      angular.forEach(newVal.relatedLink, function(link) {
+        $scope.related.push({link: link.link[0].$text, caption: link.caption.$text});
+      });
+    }
+  });
 }]);
 
 // Parent scope
