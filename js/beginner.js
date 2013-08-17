@@ -19,7 +19,7 @@ app.directive('nprLink', function() {
   }
 });
 
-app.controller('PlayerController', ['$scope', '$http', function($scope, $http) {
+app.controller('PlayerController', function($scope, $http) {
   var audio = document.createElement('audio');
   $scope.audio = audio;
 
@@ -52,12 +52,11 @@ app.controller('PlayerController', ['$scope', '$http', function($scope, $http) {
     // Some error occurred
   });
 
-}]);
+});
 
-app.controller('RelatedController', ['$scope', function($scope) {
-}]);
+app.controller('RelatedController', function($scope) {
+});
 
 // Parent scope
-app.controller('FrameController', ['$scope', function($scope) {
-
-}]);
+app.controller('FrameController', function($scope) {
+});
