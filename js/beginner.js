@@ -3,12 +3,12 @@ var app = angular.module('myApp', []),
     nprUrl = 'http://api.npr.org/query?id=61&fields=relatedLink,title,byline,text,audio,image,pullQuote,all&output=JSON';
 
 
-app.factory('audio', ['$document', function($document) {
+app.factory('audio', function($document) {
   var audio = $document[0].createElement('audio');
   return audio;
 }]);
 
-app.factory('player', ['audio', '$rootScope', function(audio, $rootScope) {
+app.factory('player', function(audio, $rootScope) {
   var player = {
 
     current: null,
@@ -41,9 +41,9 @@ app.factory('player', ['audio', '$rootScope', function(audio, $rootScope) {
     $rootScope.$apply(player.stop());
   });
   return player;
-}]);
+});
 
-app.factory('nprService', ['$http', '$q', '$rootScope', function($http, $q, $rootScope) {
+app.factory('nprService', function($http, $q, $rootScope) {
     var doRequest = function(apiKey) {
       var d = $q.defer();
       $http({
@@ -61,7 +61,7 @@ app.factory('nprService', ['$http', '$q', '$rootScope', function($http, $q, $roo
     return {
       programs: function(apiKey) { return doRequest(apiKey); }
     };
-  }]);
+  });
 
 app.directive('nprLink', function() {
   return {
@@ -79,14 +79,14 @@ app.directive('nprLink', function() {
   }
 });
 
-app.controller('PlayerController', ['$scope', 'nprService', 'player', function($scope, nprService, player) {
+app.controller('PlayerController', function($scope, nprService, player) {
   $scope.player = player;
   $scope.programs = nprService.programs(apiKey);
-}]);
+});
 
-app.controller('RelatedController', ['$scope', 'player', function($scope, player) {
+app.controller('RelatedController', function($scope, player) {
   $scope.player = player;
-  
+
   $scope.$watch('player.current', function(newVal) {
     if (newVal) {
       $scope.related = [];
@@ -95,9 +95,9 @@ app.controller('RelatedController', ['$scope', 'player', function($scope, player
       });
     }
   });
-}]);
+});
 
 // Parent scope
-app.controller('FrameController', ['$scope', function($scope) {
+app.controller('FrameController', function($scope) {
 
-}]);
+});
