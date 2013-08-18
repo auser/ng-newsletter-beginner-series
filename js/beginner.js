@@ -43,7 +43,7 @@ app.factory('player', function(audio, $rootScope) {
   return player;
 });
 
-app.factory('nprService', function($http, $rootScope) {
+app.factory('nprService', function($http) {
     var doRequest = function(apiKey) {
       return $http({
         method: 'JSONP',
