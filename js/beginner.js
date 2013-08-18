@@ -99,5 +99,4 @@ app.controller('RelatedController', function($scope, player) {
 
 // Parent scope
 app.controller('FrameController', function($scope) {
-
 });
