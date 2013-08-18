@@ -43,19 +43,12 @@ app.factory('player', function(audio, $rootScope) {
   return player;
 });
 
-app.factory('nprService', function($http, $q, $rootScope) {
+app.factory('nprService', function($http, $rootScope) {
     var doRequest = function(apiKey) {
-      var d = $q.defer();
-      $http({
+      return $http({
         method: 'JSONP',
         url: nprUrl + '&apiKey=' + apiKey + '&callback=JSON_CALLBACK'
-      }).success(function(data, status, headers) {
-        d.resolve(data.list.story);
-      }).error(function(data, status, headers) {
-        d.reject(status, data);
       });
-
-      return d.promise;
     }
 
     return {
@@ -120,7 +113,10 @@ app.directive('playerView', [function(){
 
 app.controller('PlayerController', function($scope, nprService, player) {
   $scope.player = player;
-  $scope.programs = nprService.programs(apiKey);
+  nprService.programs(apiKey)
+    .success(function(data, status) {
+      $scope.programs = data.list.story;
+    })
 });
 
 app.controller('RelatedController', function($scope, player) {
