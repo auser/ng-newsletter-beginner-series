@@ -14,6 +14,7 @@ app.factory('player', function(audio, $rootScope) {
     current: null,
     progress: 0,
     playing: false,
+    ready: false,
 
     play: function(program) {
       if (player.playing) 
@@ -34,9 +35,22 @@ app.factory('player', function(audio, $rootScope) {
     },
     currentTime: function() {
       return audio.currentTime;
+    },
+    currentDuration: function() {
+      return audio.duration;
     }
   };
-
+  audio.addEventListener('canplay', function(evt) {
+    $rootScope.$apply(function() {
+      player.ready = true;
+    });
+  });
+  audio.addEventListener('timeupdate', function(evt) {
+    $rootScope.$apply(function() {
+      player.progress = player.currentTime();
+      player.progress_percent = player.progress / player.currentDuration();
+    });
+  });
   audio.addEventListener('ended', function() {
     $rootScope.$apply(player.stop());
   });
@@ -85,22 +99,17 @@ app.directive('playerView', [function(){
       scope.$watch('ngModel.current', function(newVal) {
         if (newVal) {
           scope.playing = true;
-          scope.duration = parseInt(scope.ngModel.current.audio[0].duration.$text);
           scope.title = scope.ngModel.current.title.$text;
-          scope.secondsProgress = 0;
-          scope.percentComplete = 0;
-
-          var updateClock = function() {
-            if (scope.secondsProgress >= scope.duration || !scope.playing) {
-              scope.playing = false;
-              clearInterval(timer);
-            } else {
-              scope.secondsProgress = scope.ngModel.currentTime();
-              scope.percentComplete = scope.secondsProgress / scope.duration;
+          scope.$watch('ngModel.ready', function(newVal) {
+            if (newVal) {
+              scope.duration = scope.ngModel.currentDuration();
             }
-          };
-          var timer = setInterval(function() { scope.$apply(updateClock); }, 500);
-          updateClock();
+          });
+
+          scope.$watch('ngModel.progress', function(newVal) {
+            scope.secondsProgress = scope.ngModel.progress;
+            scope.percentComplete = scope.ngModel.progress_percent;
+          });
         }
       });
       scope.stop = function() {
