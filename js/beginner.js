@@ -6,7 +6,7 @@ var app = angular.module('myApp', []),
 app.factory('audio', function($document) {
   var audio = $document[0].createElement('audio');
   return audio;
-}]);
+});
 
 app.factory('player', function(audio, $rootScope) {
   var player = {
@@ -78,6 +78,45 @@ app.directive('nprLink', function() {
     }
   }
 });
+
+app.directive('playerView', [function(){
+  
+  return {
+    restrict: 'EA',
+    require: ['^ngModel'],
+    scope: {
+      ngModel: '='
+    },
+    templateUrl: 'views/playerView.html',
+    link: function(scope, iElm, iAttrs, controller) {
+      scope.$watch('ngModel.current', function(newVal) {
+        if (newVal) {
+          scope.playing = true;
+          scope.duration = parseInt(scope.ngModel.current.audio[0].duration.$text);
+          scope.title = scope.ngModel.current.title.$text;
+          scope.secondsProgress = 0;
+          scope.percentComplete = 0;
+
+          var updateClock = function() {
+            if (scope.secondsProgress >= scope.duration || !scope.playing) {
+              scope.playing = false;
+              clearInterval(timer);
+            } else {
+              scope.secondsProgress = scope.ngModel.currentTime();
+              scope.percentComplete = scope.secondsProgress / scope.duration;
+            }
+          };
+          var timer = setInterval(function() { scope.$apply(updateClock); }, 500);
+          updateClock();
+        }
+      });
+      scope.stop = function() {
+        scope.ngModel.stop();
+        scope.playing = false;
+      }
+    }
+  };
+}]);
 
 app.controller('PlayerController', function($scope, nprService, player) {
   $scope.player = player;

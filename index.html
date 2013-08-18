@@ -17,6 +17,11 @@
       <div class="large-8 small-8 columns">
       <h2>Player</h2>
         <div ng-controller="PlayerController">
+
+          <div class="container">
+            <div player-view class="large-12 columns small-12" ng-model="player"></div>
+          </div>
+        
           <ul id="programs_list" class="">
             <li ng-repeat="program in programs">
               <span npr-link player="player" ng-model="program"></span>
