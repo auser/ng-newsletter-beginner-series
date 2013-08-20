@@ -3,7 +3,7 @@ var app = angular.module('myApp', []),
     nprUrl = 'http://api.npr.org/query?id=61&fields=relatedLink,title,byline,text,audio,image,pullQuote,all&output=JSON';
 
 
-app.controller('PlayerController', ['$scope', function($scope) {
+app.controller('PlayerController', ['$scope', '$http', function($scope, $http) {
   var audio = document.createElement('audio');
   $scope.audio = audio;
 
